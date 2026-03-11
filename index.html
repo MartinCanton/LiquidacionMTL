@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Liquidación Chofer PAX</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  </head>
+  <body>
+    <header>
+      <h1>LIQUIDACIÓN <span>CHOFER PAX</span></h1>
+      <div class="header-meta" id="header-meta">cargando...</div>
+    </header>
+
+    <nav class="tabs">
+      <button class="tab active" onclick="showPanel('carga', this)">
+        📋 Cargar Viaje
+      </button>
+      <button class="tab" onclick="showPanel('viajes', this)">
+        📊 Viajes del Mes
+      </button>
+      <button class="tab" onclick="showPanel('informe', this)">
+        📄 Informe Final
+      </button>
+      <button class="tab" onclick="showPanel('config', this)">
+        ⚙️ Configuración
+      </button>
+    </nav>
+
+    <main>
+      <!-- PANEL: CARGA -->
+      <div class="panel active" id="panel-carga">
+        <div id="alert-carga" class="alert"></div>
+
+        <div class="km-badge">
+          <div>
+            <div class="km-number" id="km-total-badge">0</div>
+            <div class="km-label">km totales del mes</div>
+          </div>
+          <div class="km-meta" id="km-meta-badge"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Nuevo Viaje</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Fecha</label>
+              <input type="date" id="f-fecha" />
+            </div>
+            <div class="form-group">
+              <label>Hoja de Ruta Ida</label>
+              <input type="text" id="f-hoja-ida" placeholder="Ej: HR-0042" />
+            </div>
+            <div class="form-group">
+              <label>Hoja de Ruta Vuelta</label>
+              <input type="text" id="f-hoja-vuelta" placeholder="Ej: HR-0043" />
+            </div>
+            <div class="form-group">
+              <label>Kilómetros</label>
+              <input
+                type="number"
+                id="f-kms"
+                placeholder="0"
+                min="0"
+                step="0.1"
+              />
+            </div>
+            <div class="form-group">
+              <label>PAX Ida</label>
+              <input type="number" id="f-pax-ida" placeholder="0" min="0" />
+            </div>
+            <div class="form-group">
+              <label>PAX Vuelta</label>
+              <input type="number" id="f-pax-vuelta" placeholder="0" min="0" />
+            </div>
+            <div class="form-group">
+              <label>Unidad / Vehículo</label>
+              <input type="text" id="f-unidad" placeholder="Ej: Unidad 07" />
+            </div>
+            <div class="form-group full">
+              <label>Observaciones</label>
+              <input type="text" id="f-obs" placeholder="Notas opcionales..." />
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="agregarViaje()">
+              + Agregar Viaje
+            </button>
+            <button class="btn btn-outline" onclick="limpiarForm()">
+              Limpiar
+            </button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Últimos Viajes Cargados</div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>HR Ida</th>
+                  <th>HR Vuelta</th>
+                  <th>Kms</th>
+                  <th>PAX Ida</th>
+                  <th>PAX Vta</th>
+                  <th>Unidad</th>
+                  <th>Obs.</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="tabla-reciente"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANEL: VIAJES DEL MES -->
+      <div class="panel" id="panel-viajes">
+        <div class="month-bar">
+          <label>Mes/Año:</label>
+          <select id="selector-mes" onchange="renderViajes()"></select>
+        </div>
+
+        <div class="km-badge">
+          <div>
+            <div class="km-number" id="km-total-viajes">0</div>
+            <div class="km-label">km totales del período</div>
+          </div>
+          <div class="km-meta" id="km-meta-viajes"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Todos los Viajes</div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Fecha</th>
+                  <th>HR Ida</th>
+                  <th>HR Vuelta</th>
+                  <th>Kms</th>
+                  <th>PAX Ida</th>
+                  <th>PAX Vta</th>
+                  <th>Unidad</th>
+                  <th>Observaciones</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="tabla-viajes"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANEL: INFORME FINAL -->
+      <div class="panel" id="panel-informe">
+        <div class="month-bar">
+          <label>Período:</label>
+          <select id="selector-mes-inf" onchange="renderInforme()"></select>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Previsualización del Excel</div>
+          <div id="preview-content"></div>
+          <div class="btn-row">
+            <button class="btn btn-success" onclick="exportarExcel()">
+              ⬇ Descargar Excel
+            </button>
+            <button class="btn btn-outline" onclick="renderInforme()">
+              ↻ Actualizar Vista
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANEL: CONFIG -->
+      <div class="panel" id="panel-config">
+        <div class="card">
+          <div class="card-title">Datos del Chofer</div>
+          <div class="config-row">
+            <div class="form-group">
+              <label>Nombre Completo</label>
+              <input type="text" id="cfg-nombre" placeholder="Tu nombre" />
+            </div>
+            <div class="form-group">
+              <label>Legajo / N° de Chofer</label>
+              <input type="text" id="cfg-legajo" placeholder="Ej: 1234" />
+            </div>
+            <div class="form-group">
+              <label>Empresa / Operadora</label>
+              <input
+                type="text"
+                id="cfg-empresa"
+                placeholder="Nombre de empresa"
+              />
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="guardarConfig()">
+              Guardar Datos
+            </button>
+          </div>
+          <div id="alert-config" class="alert"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Gestión de Datos</div>
+          <p
+            style="font-size: 0.83rem; color: var(--muted); margin-bottom: 16px"
+          >
+            Todos los datos se guardan localmente en este navegador. Podés
+            exportar un respaldo o limpiar datos de un mes específico.
+          </p>
+          <div class="month-bar">
+            <label>Mes a eliminar:</label>
+            <select id="selector-mes-del"></select>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-danger" onclick="borrarMes()">
+              🗑 Borrar mes seleccionado
+            </button>
+            <button class="btn btn-outline" onclick="exportarBackup()">
+              💾 Exportar respaldo JSON
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
